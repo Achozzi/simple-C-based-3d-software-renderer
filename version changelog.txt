@@ -1,0 +1,3 @@
+version 1.
+Simple center screen render of mesh data, including vertices and lines.
+Includes also backface culling, but no Z buffer yet.

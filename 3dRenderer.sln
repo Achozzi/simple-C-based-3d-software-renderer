@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32106.194
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3dRenderer", "3dRenderer.vcxproj", "{AEC8AE92-1B48-419D-934F-9B25CE1F7008}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AEC8AE92-1B48-419D-934F-9B25CE1F7008}.Debug|x64.ActiveCfg = Debug|x64
+		{AEC8AE92-1B48-419D-934F-9B25CE1F7008}.Debug|x64.Build.0 = Debug|x64
+		{AEC8AE92-1B48-419D-934F-9B25CE1F7008}.Debug|x86.ActiveCfg = Debug|Win32
+		{AEC8AE92-1B48-419D-934F-9B25CE1F7008}.Debug|x86.Build.0 = Debug|Win32
+		{AEC8AE92-1B48-419D-934F-9B25CE1F7008}.Release|x64.ActiveCfg = Release|x64
+		{AEC8AE92-1B48-419D-934F-9B25CE1F7008}.Release|x64.Build.0 = Release|x64
+		{AEC8AE92-1B48-419D-934F-9B25CE1F7008}.Release|x86.ActiveCfg = Release|Win32
+		{AEC8AE92-1B48-419D-934F-9B25CE1F7008}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9D9709D9-B285-48E0-AEC1-BE110BD4A1B9}
+	EndGlobalSection
+EndGlobal
