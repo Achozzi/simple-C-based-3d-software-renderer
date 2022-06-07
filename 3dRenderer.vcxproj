@@ -150,6 +150,7 @@
     <ClCompile Include="array.c" />
     <ClCompile Include="display.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="matrix.c" />
     <ClCompile Include="mesh.c" />
     <ClCompile Include="triangle.c" />
     <ClCompile Include="vector.c" />
@@ -157,6 +158,7 @@
   <ItemGroup>
     <ClInclude Include="array.h" />
     <ClInclude Include="display.h" />
+    <ClInclude Include="matrix.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="triangle.h" />
     <ClInclude Include="vector.h" />

@@ -93,6 +93,10 @@ float vec3_dot(vec3_t v1, vec3_t v2) {
 	return (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z);
 }
 
+float vec4_dot(vec4_t v1, vec4_t v2) {
+	return (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z) + (v1.w * v2.w);
+}
+
 void vec2_normalize(vec2_t* v) {
 	float length = vec2_length(*v);
 	v->x /= length;
@@ -128,4 +132,23 @@ void vec3_rotate_z(vec3_t* v, float angle) {
 	double cosine = cos(angle);
 	v->x = (original_x * cosine) - ((v->y) * sine);
 	v->y = (original_x * sine) + ((v->y) * cosine);
+}
+
+vec3_t vec3_from_vec4(vec4_t v) {
+	vec3_t m = {
+		v.x,
+		v.y,
+		v.z
+	};
+	return m;
+}
+
+vec4_t vec4_from_vec3(vec3_t v) {
+	vec4_t m = {
+		v.x,
+		v.y,
+		v.z,
+		1.0
+	};
+	return m;
 }

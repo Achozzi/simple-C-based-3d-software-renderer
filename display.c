@@ -61,6 +61,7 @@ void draw_pixel(int x, int y, uint32_t color) {
 		color_buffer[window_width * y + x] = color;
 }
 
+//DDA
 void draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
 	int delta_x = (x1 - x0);
 	int delta_y = (y1 - y0);
@@ -79,6 +80,30 @@ void draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
 		current_y += y_inc;
 	}
 }
+
+//Bresenham CONCEPT, (doesn't work for now)
+//void draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
+//	int delta_x = (x1 - x0);
+//	int delta_y = (y1 - y0);
+//
+//	int Xk = x0;
+//	int Yk = y0;
+//	int Pk = 2 * delta_y - delta_x;
+//
+//	while (Xk != x1 && Yk != y1) {
+//		draw_pixel(Xk, Yk, color);
+//
+//		if (Pk < 0) {
+//			Pk = Pk + 2 * delta_y;
+//			Xk++;
+//		}
+//		else if (Pk >= 0) {
+//			Pk = Pk + 2 * delta_y - 2 * delta_x;
+//			Xk++;
+//			Yk++;
+//		}
+//	}
+//}
 
 void draw_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color) {
 	draw_pixel(x0, y0, color);

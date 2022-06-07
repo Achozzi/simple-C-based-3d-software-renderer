@@ -7,14 +7,13 @@
 #include "vector.h"
 #include "mesh.h"
 #include "triangle.h"
+#include "matrix.h"
 
+bool is_running = false;
 triangle_t* triangles_to_render = NULL;
 
 vec3_t camera_position = { .x = 0, .y = 0, .z = 0 };
-
-float fov_factor = 640;
-
-bool is_running = false;
+mat4_t proj_matrix;
 
 int display_mode = 2; //default 2
 int backface_culling_mode = 1; //default 1 (enabled)
@@ -34,6 +33,17 @@ bool setup(void) {
 		window_width,
 		window_height
 	);
+
+	//initialize perspective projection matrix
+	float fov = M_PI / 3.0;
+	float aspect = (float)window_height / (float)window_width;
+	float znear = 0.1;
+	float zfar = 100.0;
+	proj_matrix = mat4_make_perspective(
+		fov,
+		aspect,
+		znear,
+		zfar);
 
 	load_cube_mesh_data();
 	//char* filename = "assets\\cube.obj";
@@ -76,14 +86,6 @@ void process_input(void) {
 	}
 }
 
-vec2_t project(vec3_t point) {
-	vec2_t projected_point = {
-		.x = fov_factor * point.x / point.z,
-		.y = fov_factor * point.y / point.z
-	};
-	return projected_point;
-}
-
 void update(void) {
 	SDL_Delay(16); // 30 ms
 
@@ -92,6 +94,15 @@ void update(void) {
 	mesh.rotation.x += 0.01;
 	mesh.rotation.y += 0.01;
 	mesh.rotation.z += 0.01;
+
+	mesh.translation.z = 5;
+
+	mat4_t scale_matrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
+	mat4_t translation_matrix = mat4_make_translation(mesh.translation.x, mesh.translation.y, mesh.translation.z);
+	mat4_t rotation_matrix_x = mat4_make_rotation_x(mesh.rotation.x);
+	mat4_t rotation_matrix_y = mat4_make_rotation_y(mesh.rotation.y);
+	mat4_t rotation_matrix_z = mat4_make_rotation_z(mesh.rotation.z);
+
 
 	//loop all triangle faces of cube mesh
 	int num_faces = array_length(mesh.faces);
@@ -103,26 +114,29 @@ void update(void) {
 		face_vertices[1] = mesh.vertices[mesh_face.b - 1];
 		face_vertices[2] = mesh.vertices[mesh_face.c - 1];
 
-		vec3_t transformed_vertices[3];
+		vec4_t transformed_vertices[3];
 		 //loop all three vertices of this face and apply transforms
 		for (int j = 0; j < 3; j++) {
-			vec3_t transformed_vertex = face_vertices[j];
+			vec4_t transformed_vertex = vec4_from_vec3(face_vertices[j]);
 
-			vec3_rotate_x(&transformed_vertex, mesh.rotation.x);
-			vec3_rotate_y(&transformed_vertex, mesh.rotation.y);
-			vec3_rotate_z(&transformed_vertex, mesh.rotation.z);
-
+			mat4_t world_matrix = mat4_identity();
+			world_matrix = mat4_mul_mat4(scale_matrix, world_matrix);
+			world_matrix = mat4_mul_mat4(rotation_matrix_z, world_matrix);
+			world_matrix = mat4_mul_mat4(rotation_matrix_y, world_matrix);
+			world_matrix = mat4_mul_mat4(rotation_matrix_x, world_matrix);
+			world_matrix = mat4_mul_mat4(translation_matrix, world_matrix);
+			
 			//translate the vertex array from the camera
-			transformed_vertex.z += 5;
+			transformed_vertex = mat4_mul_vec4(world_matrix, transformed_vertex);
 
 			transformed_vertices[j] = transformed_vertex;
 		}
 
 		//backface culling
 		if (backface_culling_mode) {
-			vec3_t vector_a = transformed_vertices[0];
-			vec3_t vector_b = transformed_vertices[1];
-			vec3_t vector_c = transformed_vertices[2];
+			vec3_t vector_a = vec3_from_vec4(transformed_vertices[0]);
+			vec3_t vector_b = vec3_from_vec4(transformed_vertices[1]);
+			vec3_t vector_c = vec3_from_vec4(transformed_vertices[2]);
 
 			vec3_t vector_ab = vec3_sub(vector_b, vector_a);
 			vec3_t vector_ac = vec3_sub(vector_c, vector_a);
@@ -140,15 +154,18 @@ void update(void) {
 			}
 		}
 
-		vec2_t projected_points[3];
+		vec4_t projected_points[3];
 		for (int j = 0; j < 3; j++) {
 			//project the current vertex
-			projected_points[j] = project(transformed_vertices[j]);
+			projected_points[j] = mat4_mul_vec4_project(proj_matrix, transformed_vertices[j]);
 
 			//scale and translate projected points to middle of screen
-			projected_points[j].x += (window_width / 2);
-			projected_points[j].y += (window_height / 2);
 
+			projected_points[j].x *= (window_width / 2.0);
+			projected_points[j].y *= (window_height / 2.0);
+
+			projected_points[j].x += (window_width / 2.0);
+			projected_points[j].y += (window_height / 2.0);
 		}
 		float avg_depth = (transformed_vertices[0].z +
 			transformed_vertices[1].z +
@@ -163,7 +180,6 @@ void update(void) {
 			.color = mesh_face.color,
 			.avg_depth = avg_depth
 		};
-		//triangles_to_render[i] = projected_triangle;
 		array_push(triangles_to_render, projected_triangle);
 	}
 

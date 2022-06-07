@@ -9,3 +9,7 @@ and a backface culling enabler/disabler (c,d)
 version 3. 30.05.2022
 added sorting for triangles based on average z values --- painter's algorithm
 changed vector rotation functions to be more efficient
+
+version 4. 07.06.2022
+added matrix operation support (scaling, rotation, translation), 
+and changed vertex projection method to use a projection matrix.
