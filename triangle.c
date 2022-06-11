@@ -20,7 +20,7 @@ void fill_flat_bottom_triangle(int x0, int y0, int x1, int y1, int x2, int y2, u
 	float x_start = x0;
 	float x_end = x0;
 	for (int y = y0; y <= y2; y++) {
-		draw_line(x_start, y, x_end, y, color);
+		draw_horizontal_line(x_start, y, x_end, color);
 		x_start += inverse_slope_1;
 		x_end += inverse_slope_2;
 	}
@@ -32,7 +32,7 @@ void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint
 	float x_start = x2;
 	float x_end = x2;
 	for (int y = y2; y >= y0; y--) {
-		draw_line(x_start, y, x_end, y, color);
+		draw_horizontal_line(x_start, y, x_end, color);
 		x_start -= inverse_slope_1;
 		x_end -= inverse_slope_2;
 	}

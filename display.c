@@ -62,7 +62,7 @@ void draw_pixel(int x, int y, uint32_t color) {
 }
 
 //DDA
-void draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
+void draw_line_dda(int x0, int y0, int x1, int y1, uint32_t color) {
 	int delta_x = (x1 - x0);
 	int delta_y = (y1 - y0);
 
@@ -81,37 +81,99 @@ void draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
 	}
 }
 
-//Bresenham CONCEPT, (doesn't work for now)
-//void draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
-//	int delta_x = (x1 - x0);
-//	int delta_y = (y1 - y0);
-//
-//	int Xk = x0;
-//	int Yk = y0;
-//	int Pk = 2 * delta_y - delta_x;
-//
-//	while (Xk != x1 && Yk != y1) {
-//		draw_pixel(Xk, Yk, color);
-//
-//		if (Pk < 0) {
-//			Pk = Pk + 2 * delta_y;
-//			Xk++;
-//		}
-//		else if (Pk >= 0) {
-//			Pk = Pk + 2 * delta_y - 2 * delta_x;
-//			Xk++;
-//			Yk++;
-//		}
-//	}
-//}
+//Bresenham's line drawing method, significantly faster than DDA, copied from Wikipedia
+void draw_line_bresenham(int x0, int y0, int x1, int y1, uint32_t color) {
+	int dx = abs(x1 - x0);
+	int sx = x0 < x1 ? 1 : -1;
+	int dy = -abs(y1 - y0);
+	int sy = y0 < y1 ? 1 : -1;
+	int error = dx + dy;
+
+	int e2;
+	while (true) {
+		//draw_pixel(x0, y0, color);
+
+		//draw_pixel function body copied here to avoid sending the same color value
+		//every time for efficiency purposes
+		if (x0 >= 0 && x0 < window_width && y0 >= 0 && y0 < window_height)
+			color_buffer[window_width * y0 + x0] = color;
+
+		if (x0 == x1 && y0 == y1) {
+			break;
+		}
+		e2 = 2 * error;
+		if (e2 >= dy) {
+			if (x0 == x1) {
+				break;
+			}
+			error = error + dy;
+			x0 = x0 + sx;
+		}
+		if (e2 <= dx) {
+			if (y0 == y1) {
+				break;
+			}
+			error = error + dx;
+			y0 = y0 + sy;
+		}
+	}
+}
+
+//for flat top flat bottom triangle rasterization
+void draw_horizontal_line(int x0, int y0, int x1, uint32_t color) {
+	if (x0 < x1) {
+		for (x0; x0 <= x1; ++x0) {
+			if (x0 >= 0 && x0 < window_width && y0 >= 0 && y0 < window_height)
+				color_buffer[window_width * y0 + x0] = color;
+		}
+	}
+	else {
+		for (x1; x1 <= x0; ++x1) {
+			if (x1 >= 0 && x1 < window_width && y0 >= 0 && y0 < window_height)
+				color_buffer[window_width * y0 + x1] = color;
+		}
+	}
+}
+
+void draw_vertical_line(int x0, int y0, int y1, uint32_t color) {
+	if (y0 < y1) {
+		for (y0; y0 <= y1; ++y0) {
+			draw_pixel(x0, y0, color);
+		}
+	}
+	else {
+		for (y1; y1 <= y0; ++y1) {
+			draw_pixel(x0, y1, color);
+		}
+	}
+}
+
+void draw_diagonal_line(int x0, int y0, int x1, int y1, uint32_t color) {
+	if (y0 < y1) {
+		for (y0; y0 <= y1; ++y0) {
+			draw_pixel(x0, y0, color);
+		}
+	}
+	else {
+		for (y1; y1 <= y0; ++y1) {
+			draw_pixel(x0, y1, color);
+		}
+	}
+}
+
+//TODO: 
+//draw_vertical_line
+//draw_diagonal_line
+
+
 
 void draw_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color) {
 	draw_pixel(x0, y0, color);
 	draw_pixel(x1, y1, color);
 	draw_pixel(x2, y2, color);
-	draw_line(x0, y0, x1, y1, color);
-	draw_line(x1, y1, x2, y2, color);
-	draw_line(x2, y2, x0, y0, color);
+	draw_line_bresenham(x0, y0, x1, y1, color);
+	draw_line_bresenham(x1, y1, x2, y2, color);
+	draw_line_bresenham(x2, y2, x0, y0, color);
 }
 
 

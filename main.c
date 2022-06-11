@@ -8,12 +8,15 @@
 #include "mesh.h"
 #include "triangle.h"
 #include "matrix.h"
+#include "light.h"
 
 bool is_running = false;
 triangle_t* triangles_to_render = NULL;
 
 vec3_t camera_position = { .x = 0, .y = 0, .z = 0 };
 mat4_t proj_matrix;
+
+int previous_frame_time = 0;
 
 int display_mode = 2; //default 2
 int backface_culling_mode = 1; //default 1 (enabled)
@@ -45,9 +48,9 @@ bool setup(void) {
 		znear,
 		zfar);
 
-	load_cube_mesh_data();
-	//char* filename = "assets\\cube.obj";
-	//load_obj_file_data(filename);
+	//load_cube_mesh_data();
+	char* filename = "assets\\cube.obj";
+	load_obj_file_data(filename);
 
 	return true;
 }
@@ -87,7 +90,15 @@ void process_input(void) {
 }
 
 void update(void) {
-	SDL_Delay(16); // 30 ms
+	// Wait some time until the reach the target frame time in milliseconds
+	int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - previous_frame_time);
+
+	// Only delay execution if we are running too fast
+	if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
+		SDL_Delay(time_to_wait);
+	}
+
+	previous_frame_time = SDL_GetTicks();
 
 	triangles_to_render = NULL;
 
@@ -133,22 +144,23 @@ void update(void) {
 		}
 
 		//backface culling
+		
+		vec3_t vector_a = vec3_from_vec4(transformed_vertices[0]);
+		vec3_t vector_b = vec3_from_vec4(transformed_vertices[1]);
+		vec3_t vector_c = vec3_from_vec4(transformed_vertices[2]);
+
+		vec3_t vector_ab = vec3_sub(vector_b, vector_a);
+		vec3_t vector_ac = vec3_sub(vector_c, vector_a);
+		vec3_normalize(&vector_ab);
+		vec3_normalize(&vector_ac);
+
+		vec3_t normal = vec3_cross(vector_ab, vector_ac);
+		vec3_normalize(&normal);
+
+		vec3_t camera_ray = vec3_sub(camera_position, vector_a);
+		float dot_normal_camera = vec3_dot(normal, camera_ray);
+
 		if (backface_culling_mode) {
-			vec3_t vector_a = vec3_from_vec4(transformed_vertices[0]);
-			vec3_t vector_b = vec3_from_vec4(transformed_vertices[1]);
-			vec3_t vector_c = vec3_from_vec4(transformed_vertices[2]);
-
-			vec3_t vector_ab = vec3_sub(vector_b, vector_a);
-			vec3_t vector_ac = vec3_sub(vector_c, vector_a);
-			vec3_normalize(&vector_ab);
-			vec3_normalize(&vector_ac);
-
-			vec3_t normal = vec3_cross(vector_ab, vector_ac);
-			vec3_normalize(&normal);
-
-			vec3_t camera_ray = vec3_sub(camera_position, vector_a);
-			float dot_normal_camera = vec3_dot(normal, camera_ray);
-
 			if (dot_normal_camera < 0) {
 				continue;
 			}
@@ -164,6 +176,8 @@ void update(void) {
 			projected_points[j].x *= (window_width / 2.0);
 			projected_points[j].y *= (window_height / 2.0);
 
+			projected_points[j].y *= -1;
+
 			projected_points[j].x += (window_width / 2.0);
 			projected_points[j].y += (window_height / 2.0);
 		}
@@ -171,13 +185,19 @@ void update(void) {
 			transformed_vertices[1].z +
 			transformed_vertices[2].z) / 3.0;
 
+		//calculate shading intensity based on dot product between face normal and light angle
+		float light_intensity_factor = -vec3_dot(normal, light.direction);
+
+		//calculate triangle color based on the light angle
+		uint32_t triangle_color = light_apply_intensity(mesh_face.color, light_intensity_factor);
+
 		triangle_t projected_triangle = {
 			.points = {
 				{projected_points[0].x, projected_points[0].y},
 				{projected_points[1].x, projected_points[1].y},
 				{projected_points[2].x, projected_points[2].y}
 			 },
-			.color = mesh_face.color,
+			.color = triangle_color,
 			.avg_depth = avg_depth
 		};
 		array_push(triangles_to_render, projected_triangle);
